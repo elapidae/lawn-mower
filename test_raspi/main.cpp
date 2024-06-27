@@ -14,7 +14,7 @@ using namespace std::chrono_literals;
 uint32_t inited_tick;
 uint32_t start_tick, end_tick;
 bool has_read = false;
-void echo_alert( int gpio, int level, uint32_t tick )
+static void echo_alert( int gpio, int level, uint32_t tick )
 {
     uint32_t diffTick;
 
