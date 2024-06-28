@@ -4,38 +4,90 @@
 #include "vlog.h"
 #include "stdio.h"
 #include <unistd.h>
+#include "gpio_init.h"
+
 using namespace std;
 using namespace chrono_literals;
 
 //=======================================================================================
-/*
-static void echo_alert( int gpio, int level, uint32_t tick )
+Engine::Engine( int dir, int start_stop, int spd, int holl )
+    : leg_direction( dir )
+    , leg_start_stop( start_stop )
+    , leg_speed( spd )
+    , leg_holl( holl )
 {
-    uint32_t diffTick;
+    static GPIO_Init _;
 
-    // make sure we don't measure trigger pulse
-    if ( tick <= inited_tick ) return;
-
-    if ( level == PI_ON ) // start counting on rising edge
-    {
-        start_tick = tick;
-        return;
-    }
-
-    if ( level != PI_OFF ) // stop counting on falling edge
-    {
-        vwarning << "Strange level: " << level;
-        return;
-    }
-
-    // Now level == PI_OFF
-    end_tick = tick;
-    auto diff = (end_tick - start_tick) / 58;
-
-    has_read = true;
-    vdeb << "tick:" << tick << ", len:" << diff;
+    gpioSetMode( leg_direction,   PI_OUTPUT );
+    gpioSetMode( leg_start_stop,  PI_OUTPUT );
+    gpioSetMode( leg_speed,       PI_OUTPUT );
+    gpioSetMode( leg_holl,        PI_INPUT  );
+    gpioSetAlertFuncEx( leg_holl, &Engine::on_alert_ex, this );
 }
-*/
+//=======================================================================================
+Engine::~Engine()
+{
+    gpioSetAlertFuncEx( leg_holl, nullptr, nullptr );
+    set_speed(0);
+    stop();
+}
+//=======================================================================================
+void Engine::on_alert_ex( int gpio, int level, uint32_t tick, void *self )
+{
+    auto ptr = static_cast<Engine*>( self );
+    ptr->on_alert( gpio, level, tick );
+}
+//=======================================================================================
+void Engine::on_alert( int gpio, int level, uint32_t tick )
+{
+    if ( !cur_alert ) return;
+    (this->*cur_alert)( gpio, level, tick );
+}
+//=======================================================================================
+void Engine::set_direction( int dir )
+{
+    gpioWrite( leg_direction, dir );
+}
+//=======================================================================================
+void Engine::set_speed( int spd )
+{
+    gpioPWM( leg_speed, spd );
+}
+//=======================================================================================
+void Engine::set_stop( bool stop )
+{
+    auto signal = stop ? PI_ON : PI_OFF;
+    gpioWrite( leg_start_stop, signal );
+    stopped = stop;
+}
+//=======================================================================================
+void Engine::move_until_steps( int dir, int spd, int steps )
+{
+    cur_alert = &Engine::on_stop_by_steps;
+    set_direction( dir );
+    set_speed( spd );
+    steps_until_stop = steps;
+    run();
+}
+//=======================================================================================
+void Engine::on_stop_by_steps( int gpio, int level, uint32_t tick )
+{
+    if ( gpio != leg_holl )
+    {
+        vwarning << "gpio not hall";
+        return;
+    }
+    vdeb << "on steps" << steps_until_stop;
+    if ( --steps_until_stop > 0 )
+    {
+        return;
+    }
+
+    stop();
+}
+//=======================================================================================
+
+
 //=======================================================================================
 static void echo_alert( int gpio, int level, uint32_t tick )
 {
@@ -111,9 +163,4 @@ int Engine::test()
     gpioWrite( mr_EL_Start_Stop, PI_OFF );
     gpioTerminate();
     return 0;
-}
-
-Engine::Engine()
-{
-
 }
