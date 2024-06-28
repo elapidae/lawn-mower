@@ -5,31 +5,42 @@
 #include "engine.h"
 #include "gpio_init.h"
 #include "usonic.h"
+#include <fstream>
+#include "vcat.h"
 
 using namespace std;
 using namespace std::chrono_literals;
 
 //=======================================================================================
+void test_round()
+{
+    auto R = Engine::right_engine();
+    auto L = Engine::left_engine();
+
+    auto _s = USonic::first();
+    auto S = USonicSync( &_s );
+
+
+    auto spd = 40;
+    auto holl = 250;
+    ofstream f;
+    f.open( vcat("../", spd, "-", holl, ".txt") );
+
+    R.move_until_steps( 1, spd, holl );
+    L.move_until_steps( 1, spd, holl );
+    while( !L.stopped && !R.stopped )
+    {
+        auto dist = S.measure();
+        f << dist << ";" << L.steps_until_stop << ";" << R.steps_until_stop << "\n";
+        vdeb << dist;
+    }
+}
 int main()
 {
     //-------------------------
-    auto engine = Engine::right_engine();
-    //auto engine = Engine::left_engine();
-    //while( 1 ) {this_thread::sleep_for(10ms); }
-
-    engine.move_until_steps( 0, 50, 90 );
-    while( !engine.stopped ) {this_thread::sleep_for(10ms); }
-
-    this_thread::sleep_for(100ms);
-
-    engine.move_until_steps( 1, 50, 90 );
-    while( !engine.stopped ) {this_thread::sleep_for(10ms); }
-
+    test_round();
     return 0;
     //-------------------------
-    return Engine::test();
-    //-------------------------
-
     this_thread::sleep_for(1s);
 
     return 0;

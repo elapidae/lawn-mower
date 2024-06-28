@@ -26,6 +26,7 @@ public:
     void move_until_steps( int dir, int spd, int steps );
 
     bool stopped = true;
+    int steps_until_stop = 0;
 
 private:
     int leg_direction   = -1;
@@ -33,7 +34,6 @@ private:
     int leg_speed       = -1;
     int leg_holl        = -1;
 
-    int steps_until_stop = 0;
     void on_stop_by_steps( int gpio, int level, uint32_t tick );
 
     using CurAlertCallBack = void(Engine::*)( int gpio, int level, uint32_t tick );
