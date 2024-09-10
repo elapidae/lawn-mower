@@ -29,8 +29,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->test_files_list->setCurrentRow(0);
     ui->holls_per_round->setValue(90);
     ui->rebuild_by_all->setChecked(false);
-
-    rebuild_avg();
 }
 //=======================================================================================
 MainWindow::~MainWindow()
@@ -73,12 +71,12 @@ void MainWindow::on_paint_angles_clicked()
     rebuild();
 }
 //=======================================================================================
-void MainWindow::rebuild()
+void MainWindow::on_rebuild_by_all_clicked()
 {
-    rebuild_all();
+    rebuild();
 }
 //=======================================================================================
-void MainWindow::on_rebuild_by_all_clicked()
+void MainWindow::rebuild()
 {
     if ( ui->rebuild_by_all->isChecked() )
         rebuild_all();
@@ -105,10 +103,6 @@ void MainWindow::rebuild_avg()
     double cur_angle = 0;
     double cur_angle_g = 0;
 
-    QColor color( Qt::blue );
-    color.setAlphaF( .3 );
-    QPen pen( color, .3 );
-
     int cnt = 0;
     while ( !rr.finished() )
     {
@@ -126,15 +120,7 @@ void MainWindow::rebuild_avg()
         QLineF dist_line( uz_x, uz_y, x, y );
         auto dist_R = dist_line.length();
 
-        if ( ui->paint_angles->isChecked() )
-        {
-            auto item = new QGraphicsEllipseItem( uz_x - dist_R, uz_y - dist_R,
-                                                  dist_R * 2, dist_R * 2 );
-            item->setPen( pen );
-            item->setStartAngle( (cur_angle_g - 7.5) * 16 );
-            item->setSpanAngle( 15 * 16 );
-            scene->addItem( item );
-        }
+        add_sonar_angle( uz_x, uz_y, dist_R, cur_angle_g );
 
         scene->addEllipse( x, y, 0.1, 0.1 );
         scene->addLine( dist_line, QPen(Qt::green, .2) );
@@ -159,9 +145,9 @@ void MainWindow::rebuild_all()
     const auto dAngle = 2. * M_PI / holls_per_round;
     const auto dAngle_g = 360. / holls_per_round;
 
-    QColor color( Qt::blue );
-    color.setAlphaF( .3 );
-    QPen pen( color, .3 );
+//    QColor color( Qt::blue );
+//    color.setAlphaF( .3 );
+//    QPen pen( color, .3 );
 
     int cnt = 0;
     double cur_angle = 0;
@@ -171,7 +157,7 @@ void MainWindow::rebuild_all()
         auto fix_list = rr.next_serie_by_left();
         const auto dangle = dAngle / fix_list.size();
         const auto dangle_g = dAngle_g / fix_list.size();
-        vdeb << fix_list.size();
+
         for ( auto step: fix_list )
         {
             auto avg = step.distance;
@@ -186,15 +172,7 @@ void MainWindow::rebuild_all()
             QLineF dist_line( uz_x, uz_y, x, y );
             auto dist_R = dist_line.length();
 
-            if ( ui->paint_angles->isChecked() )
-            {
-                auto item = new QGraphicsEllipseItem( uz_x - dist_R, uz_y - dist_R,
-                                                      dist_R * 2, dist_R * 2 );
-                item->setPen( pen );
-                item->setStartAngle( (cur_angle_g - 7.5) * 16 );
-                item->setSpanAngle( 15 * 16 );
-                scene->addItem( item );
-            }
+            add_sonar_angle( uz_x, uz_y, dist_R, cur_angle_g );
 
             scene->addEllipse( x, y, 0.1, 0.1 );
             scene->addLine( dist_line, QPen(Qt::green, .2) );
@@ -205,5 +183,25 @@ void MainWindow::rebuild_all()
     } // for rr.finished()
 
     vdeb << scene->items().size();
+}
+//=======================================================================================
+void MainWindow::add_sonar_angle( qreal uz_x, qreal uz_y,
+                                  qreal dist_R,
+                                  qreal cur_angle_g )
+{
+    if ( !ui->paint_angles->isChecked() )
+        return;
+
+    QColor color( Qt::blue );
+    color.setAlphaF( .03 );
+    QBrush brush( color );
+
+    auto item = new QGraphicsEllipseItem( uz_x - dist_R, uz_y - dist_R,
+                                          dist_R * 2, dist_R * 2 );
+    item->setPen( Qt::NoPen );
+    item->setBrush( brush );
+    item->setStartAngle( (cur_angle_g - 7.5) * 16 );
+    item->setSpanAngle( 15 * 16 );
+    scene->addItem( item );
 }
 //=======================================================================================

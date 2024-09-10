@@ -37,6 +37,8 @@ private:
     void rebuild_avg();
     void rebuild_all();
 
+    void add_sonar_angle( qreal uz_x, qreal uz_y, qreal dist_R, qreal cur_angle_g );
+
     QString test_filename;
     double holls_per_round = 90;
     //std::shared_ptr<Test_Rounds_Reader> rr;
