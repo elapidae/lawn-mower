@@ -30,8 +30,12 @@ private slots:
 
     void on_paint_angles_clicked();
 
+    void on_rebuild_by_all_clicked();
+
 private:
     void rebuild();
+    void rebuild_avg();
+    void rebuild_all();
 
     QString test_filename;
     double holls_per_round = 90;

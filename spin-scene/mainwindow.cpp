@@ -28,8 +28,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->test_files_list->setCurrentRow(0);
     ui->holls_per_round->setValue(90);
+    ui->rebuild_by_all->setChecked(false);
 
-    rebuild();
+    rebuild_avg();
 }
 //=======================================================================================
 MainWindow::~MainWindow()
@@ -37,6 +38,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 //=======================================================================================
+
 //=======================================================================================
 void MainWindow::on_zoom_decrease_clicked()
 {
@@ -58,6 +60,7 @@ void MainWindow::on_test_files_list_currentItemChanged(QListWidgetItem *current,
                                                        QListWidgetItem *previous)
 {
     test_filename = current->text();
+    rebuild();
 }
 //=======================================================================================
 void MainWindow::on_rebuild_btn_clicked()
@@ -70,10 +73,23 @@ void MainWindow::on_paint_angles_clicked()
     rebuild();
 }
 //=======================================================================================
+void MainWindow::rebuild()
+{
+    rebuild_all();
+}
+//=======================================================================================
+void MainWindow::on_rebuild_by_all_clicked()
+{
+    if ( ui->rebuild_by_all->isChecked() )
+        rebuild_all();
+    else
+        rebuild_avg();
+}
+//=======================================================================================
 
 
 //=======================================================================================
-void MainWindow::rebuild()
+void MainWindow::rebuild_avg()
 {
     scene->clear();
 
@@ -126,6 +142,68 @@ void MainWindow::rebuild()
         cur_angle -= dangle;
         cur_angle_g += dangle_g;
     }
+    vdeb << scene->items().size();
 }
 //=======================================================================================
+void MainWindow::rebuild_all()
+{
+    scene->clear();
 
+    double pok_radius = 19;
+    scene->addEllipse( -pok_radius, -pok_radius,
+                       pok_radius * 2, pok_radius * 2,
+                       QPen(Qt::red) );
+
+    Test_Rounds_Reader rr( test_filename );
+
+    const auto dAngle = 2. * M_PI / holls_per_round;
+    const auto dAngle_g = 360. / holls_per_round;
+
+    QColor color( Qt::blue );
+    color.setAlphaF( .3 );
+    QPen pen( color, .3 );
+
+    int cnt = 0;
+    double cur_angle = 0;
+    double cur_angle_g = 0;
+    while ( !rr.finished() )
+    {
+        auto fix_list = rr.next_serie_by_left();
+        const auto dangle = dAngle / fix_list.size();
+        const auto dangle_g = dAngle_g / fix_list.size();
+        vdeb << fix_list.size();
+        for ( auto step: fix_list )
+        {
+            auto avg = step.distance;
+            auto dist = avg + pok_radius;
+
+            auto uz_x = pok_radius * cos( cur_angle );
+            auto uz_y = pok_radius * sin( cur_angle );
+
+            auto x = dist * cos( cur_angle );
+            auto y = dist * sin( cur_angle );
+
+            QLineF dist_line( uz_x, uz_y, x, y );
+            auto dist_R = dist_line.length();
+
+            if ( ui->paint_angles->isChecked() )
+            {
+                auto item = new QGraphicsEllipseItem( uz_x - dist_R, uz_y - dist_R,
+                                                      dist_R * 2, dist_R * 2 );
+                item->setPen( pen );
+                item->setStartAngle( (cur_angle_g - 7.5) * 16 );
+                item->setSpanAngle( 15 * 16 );
+                scene->addItem( item );
+            }
+
+            scene->addEllipse( x, y, 0.1, 0.1 );
+            scene->addLine( dist_line, QPen(Qt::green, .2) );
+
+            cur_angle -= dangle;
+            cur_angle_g += dangle_g;
+        } // for each element in list
+    } // for rr.finished()
+
+    vdeb << scene->items().size();
+}
+//=======================================================================================

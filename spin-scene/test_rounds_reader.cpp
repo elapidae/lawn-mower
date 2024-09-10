@@ -43,6 +43,7 @@ QList<Test_Rounds_Reader::Step> Test_Rounds_Reader::next_serie_by_left()
     while ( !finished() )
     {
         next();
+        res << cur;
         if ( prev.l_stop != cur.l_stop ) break;
     }
     return res;
