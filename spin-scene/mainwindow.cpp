@@ -4,7 +4,12 @@
 
 #include <math.h>
 #include <QGraphicsEllipseItem>
+#include <QWheelEvent>
+#include <QMouseEvent>
+#include <QDebug>
 #include "vlog.h"
+
+#define qdeb qDebug() << __LINE__
 
 //=======================================================================================
 MainWindow::MainWindow(QWidget *parent)
@@ -19,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     view->setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing );
     view->scale(3, 3);
     view->rotate(-90);
+    view->installEventFilter(this);
 
     ui->test_files_list->addItem( "../40-150.txt" );
     ui->test_files_list->addItem( "../40-250.txt" );
@@ -34,6 +40,41 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+//=======================================================================================
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched != ui->view) return false;
+
+    if (event->type() == QEvent::Wheel)
+    {
+        auto wheel = dynamic_cast<QWheelEvent*>(event);
+        if (!wheel) throw verror;
+
+        auto delta = wheel->angleDelta().y();
+        if (delta > 0)
+            on_zoom_increase_clicked();
+        else
+            on_zoom_decrease_clicked();
+
+        return true;
+    }
+
+    if (event->type() == QEvent::MouseButtonPress)
+    {
+        auto mouse = dynamic_cast<QMouseEvent*>(event);
+        if (!mouse) throw verror;
+        vdeb << mouse->pos() << mouse->localPos() << mouse->button();
+
+        return true;
+    }
+
+    //vdeb << event->type();
+
+
+
+    return false;
+    //GraphicsSceneMouseMove
 }
 //=======================================================================================
 

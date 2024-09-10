@@ -33,6 +33,8 @@ private slots:
     void on_rebuild_by_all_clicked();
 
 private:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
     void rebuild();
     void rebuild_avg();
     void rebuild_all();
