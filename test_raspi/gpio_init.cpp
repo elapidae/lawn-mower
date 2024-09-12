@@ -8,8 +8,9 @@ class GPIO_Init::pimpl
 public:
     pimpl()
     {
-        if ( gpioInitialise() < 0 )
-            throw verror << "gpioInitialise";
+        auto rcode = gpioInitialise();
+        if ( rcode < 0 )
+            throw verror << "gpioInitialise: " << rcode;
         vtrace << "gpio inited";
     }
 
