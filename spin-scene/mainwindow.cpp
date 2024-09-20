@@ -11,6 +11,10 @@
 
 #define qdeb qDebug() << __LINE__
 
+
+double pok_radius = 64;
+
+
 //=======================================================================================
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -132,7 +136,6 @@ void MainWindow::rebuild_avg()
 {
     scene->clear();
 
-    double pok_radius = 19;
     scene->addEllipse( -pok_radius, -pok_radius,
                        pok_radius * 2, pok_radius * 2,
                        QPen(Qt::red) );
@@ -176,7 +179,6 @@ void MainWindow::rebuild_all()
 {
     scene->clear();
 
-    double pok_radius = 19;
     scene->addEllipse( -pok_radius, -pok_radius,
                        pok_radius * 2, pok_radius * 2,
                        QPen(Qt::red) );

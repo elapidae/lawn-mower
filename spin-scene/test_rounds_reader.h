@@ -11,6 +11,7 @@ public:
     {
         double distance = -1;
         int l_stop = -1, r_stop = -1;
+        double d2 = -1, d3 = -1, d4 = -1;
     };
 
     Test_Rounds_Reader(QString fname);
@@ -28,13 +29,15 @@ public:
         Candle( QList<Step> steps )
         {
             assert( !steps.isEmpty() );
-            min = avg = max = steps.at(0).distance;
+            min = max = steps.at(0).distance;
+            auto sum = 0.0;
             for ( auto s: steps )
             {
                 min = std::min(s.distance, min);
-                avg = std::min(s.distance, avg);
-                max = std::min(s.distance, max);
+                sum += s.distance;
+                max = std::max(s.distance, max);
             }
+            avg = sum / steps.size();
         }
         double min, avg, max;
     };
