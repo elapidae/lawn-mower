@@ -6,7 +6,11 @@
 class USonic final
 {
 public:
+    //initiz ultrasonic
     static USonic first() { return {15, 14}; }
+    static USonic second() { return {17, 27}; }
+    static USonic three() { return {22, 23}; }
+    static USonic four() { return {10, 9}; }
 
     USonic( int trig, int echo );
     ~USonic();
