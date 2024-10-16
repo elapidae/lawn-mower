@@ -32,6 +32,18 @@ private slots:
 
     void on_rebuild_by_all_clicked();
 
+    void on_d2_paint_clicked();
+
+    void on_d3_paint_clicked();
+
+    void on_d4_paint_clicked();
+
+    void on_d2_grad_valueChanged(double arg1);
+
+    void on_d3_grad_valueChanged(double arg1);
+
+    void on_d4_grad_valueChanged(double arg1);
+
 private:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
