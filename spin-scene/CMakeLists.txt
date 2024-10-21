@@ -16,20 +16,25 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 add_definitions(-DV_HAS_QT)
 set(VLIBS_DIR "${CMAKE_CURRENT_LIST_DIR}/../vlibs2")
-include(${VLIBS_DIR}/cmake/vlog.cmake)
+include( ${VLIBS_DIR}/cmake/vlog.cmake )
+include( ${VLIBS_DIR}/cmake/threads.cmake )
+include( ${VLIBS_DIR}/cmake/vtimer.cmake )
+include( ${VLIBS_DIR}/cmake/vsignal.cmake )
+set( sources ${V_HEADERS} ${V_SOURCES} )
 
 set(raspi_src
     ../test_raspi/engine.cpp ../test_raspi/engine.h
     ../test_raspi/usonic.cpp ../test_raspi/usonic.h
     ../test_raspi/gpio_init.cpp ../test_raspi/gpio_init.h
     )
+include_directories( ../test_raspi/ )
 
 set(PROJECT_SOURCES
         ${raspi_src}
+        ${sources}
         main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
+        mainwindow.cpp       mainwindow.h       mainwindow.ui
+        interactmoveform.cpp interactmoveform.h interactmoveform.ui
         ${V_SOURCES}
         ${V_HEADERS}
         test_rounds_reader.cpp
@@ -37,28 +42,8 @@ set(PROJECT_SOURCES
         lawn.cpp lawn.h
 )
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(spin-scene
-        MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
-    )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET spin-scene APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
-else()
-    if(ANDROID)
-        add_library(spin-scene SHARED
-            ${PROJECT_SOURCES}
-        )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-    else()
-        add_executable(spin-scene
-            ${PROJECT_SOURCES}
-        )
-    endif()
-endif()
+add_executable( spin-scene ${PROJECT_SOURCES} )
+
 
 target_link_libraries( ${PROJECT_NAME} rt pigpio ${V_LIBRARIES} Qt${QT_VERSION_MAJOR}::Widgets)
 

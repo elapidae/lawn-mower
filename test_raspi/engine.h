@@ -2,6 +2,7 @@
 #define ENGINE_H
 
 #include <stdint.h>
+#include "vsignal.h"
 
 class Engine final
 {
@@ -28,6 +29,9 @@ public:
     bool stopped = true;
     int steps_until_stop = 0;
 
+    void set_holl_signal();
+    vsignal<int, uint32_t> holl_signal;
+
 private:
     int leg_direction   = -1;
     int leg_start_stop  = -1;
@@ -35,6 +39,7 @@ private:
     int leg_holl        = -1;
 
     void on_stop_by_steps( int gpio, int level, uint32_t tick );
+    void on_holl_signal( int gpio, int level, uint32_t tick );
 
     using CurAlertCallBack = void(Engine::*)( int gpio, int level, uint32_t tick );
     CurAlertCallBack cur_alert = nullptr;

@@ -7,16 +7,15 @@
 
 #include <csignal>
 #include <thread>
+#include "interactmoveform.h"
 
 using namespace std::chrono_literals;
 
 int main(int argc, char *argv[])
 {
-
-    //Test_Rounds_Reader rr("../40-150.txt");
-
     QApplication a(argc, argv);
-    MainWindow w;
+    //MainWindow w;
+    InteractMoveForm w;
     w.resize(1200, 800);
     w.show();
     return a.exec();

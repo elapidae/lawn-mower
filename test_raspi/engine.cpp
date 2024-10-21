@@ -16,7 +16,13 @@ Engine::Engine( int dir, int start_stop, int spd, int holl )
     , leg_speed( spd )
     , leg_holl( holl )
 {
-    static GPIO_Init _;
+    static GPIO_Init _gpio;
+
+    _gpio.add_exit_fn( [spd]()
+    {
+        vdeb << "set engine pin" << spd << "speed to 0";
+        gpioPWM( spd, 0 );
+    });
 
     gpioSetMode( leg_direction,   PI_OUTPUT );
     gpioSetMode( leg_start_stop,  PI_OUTPUT );
@@ -70,6 +76,11 @@ void Engine::move_until_steps( int dir, int spd, int steps )
     run();
 }
 //=======================================================================================
+void Engine::set_holl_signal()
+{
+    cur_alert = &Engine::on_holl_signal;
+}
+//=======================================================================================
 void Engine::on_stop_by_steps( int gpio, int level, uint32_t tick )
 {
     if ( gpio != leg_holl )
@@ -84,6 +95,11 @@ void Engine::on_stop_by_steps( int gpio, int level, uint32_t tick )
     }
 
     stop();
+}
+//=======================================================================================
+void Engine::on_holl_signal( int gpio, int level, uint32_t tick )
+{
+    holl_signal( level, tick );
 }
 //=======================================================================================
 
